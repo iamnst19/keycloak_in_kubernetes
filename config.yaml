@@ -1,0 +1,31 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: config_realm
+  namespace: keycloak
+data:
+  realm.json: |-
+    {
+      "service_strategies": [
+        {
+          "service": "istio-mixer",
+          "type": "probabilistic",
+          "param": 0
+        },
+        {
+          "service": "istio-policy",
+          "type": "probabilistic",
+          "param": 0
+        },
+        {
+            "service": "istio-telemetry",
+            "type": "probabilistic",
+            "param": 0
+        }
+      ],
+      "default_strategy": {
+        "type": "probabilistic",
+        "param": 1
+      }
+    }  
