@@ -37,14 +37,17 @@ kubernetes.io/name=ingress-nginx
 ```
 helm repo add bitnami https://charts.bitnami.com/bitnami
 
-helm install -n keycloak keycloak-db bitnami/postgresql-ha
+helm install -n ingress-basic keycloak-db bitnami/postgresql-ha
 ```
 # keycloak-deployment
 
 ## Deployment YAML FILE:
 ```
-kubectl apply -n ingress-basic -f keycloak-ingress.yaml
+kubectl apply -n ingress-basic -f keycloak.yaml
 ```
+# There are 2 ways to create tls through ingress
+# Option-1
+
 ## Generate TLS certificates:
 
 ```
@@ -61,7 +64,41 @@ kubectl create secret tls aks-ingress-tls \
     --key aks-ingress-tls.key \
     --cert aks-ingress-tls.crt
 ```
+**OR**
+# Option-2
+## Use Cert-Manager
 
+## Step-1 (Install Cert-Manager)
+```
+** To install the cert-manager controller:**
+
+Copy
+# Label the ingress-basic namespace to disable resource validation
+kubectl label namespace ingress-basic cert-manager.io/disable-validation=true
+
+# Add the Jetstack Helm repository
+helm repo add jetstack https://charts.jetstack.io
+
+# Update your local Helm chart repository cache
+helm repo update
+
+# Install the cert-manager Helm chart
+helm install cert-manager jetstack/cert-manager \
+  --namespace ingress-basic \
+  --set installCRDs=true \
+  --set nodeSelector."kubernetes\.io/os"=linux \
+  --set webhook.nodeSelector."kubernetes\.io/os"=linux \
+  --set cainjector.nodeSelector."kubernetes\.io/os"=linux
+
+```
+## Step-2 (Create a cluster Issuer)
+```
+kubectl apply -f cluster_issuer.yaml
+```
+## Step-3 Check certificate generated
+```
+kubectl get certificate --namespace ingress-basic
+```
 ## Create Ingress Resource
 ```
 kubectl apply -f keycloak-ingress.yaml
@@ -69,5 +106,5 @@ kubectl apply -f keycloak-ingress.yaml
 
 ## Test Connection
 ```
-curl -v -k --resolve demo.azure.com:443:20.72.185.249 https://demo.azure.com/
+curl -v -k --resolve demo.azure.com:443:EXTERNAL_IP https://demo.azure.com/
 ```
