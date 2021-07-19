@@ -37,11 +37,10 @@ spec:
       containers:
       - image: quay.io/keycloak/keycloak:12.0.3
         name: keycloak
-        env:
-        - name: KEYCLOAK_USER
-          value: admin
-        - name: KEYCLOAK_PASSWORD
-          value: "admin"
+        envFrom:
+        - secretRef:
+            name: keycloak_cred
+        env:        
         - name: PROXY_ADDRESS_FORWARDING
           value: "true"
         - name: DB_ADDR
